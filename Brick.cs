@@ -8,6 +8,7 @@ namespace Brick_Breaker_Summative
     {
         private Texture2D _texture;
         private Rectangle _rect;
+        public Rectangle Rectangle {  get { return _rect; } }
         private Rectangle _colored;
         private Color _color;
         public Brick(Texture2D texture, Rectangle rect, Color color)
@@ -24,6 +25,7 @@ namespace Brick_Breaker_Summative
         public void Draw(SpriteBatch sb)
         {
             sb.Draw(_texture, _rect,Color.DarkGray);
+
             sb.Draw(_texture, _colored, _color);
         }
     }

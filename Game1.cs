@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 
 namespace Brick_Breaker_Summative
 {
@@ -11,11 +10,13 @@ namespace Brick_Breaker_Summative
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        List<Microsoft.Xna.Framework.Color> _colors;
-        Texture2D rectTex;
+        //List<Microsoft.Xna.Framework.Color> _colors;
+        List<Color> _colors;
+        Texture2D rectTex,ballTex,padTex;
         List<Brick> bricks;
         Random gen = new Random();
         int width, height;
+        Paddle _pad;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -25,6 +26,14 @@ namespace Brick_Breaker_Summative
             _graphics.PreferredBackBufferHeight = 720;
             width = _graphics.PreferredBackBufferWidth;
             height = _graphics.PreferredBackBufferHeight;
+            _colors = new List<Color>();
+            _colors.Add(Color.Red);
+            _colors.Add(Color.ForestGreen);
+            _colors.Add(Color.BlueViolet);
+            _colors.Add(Color.Orange);
+            _colors.Add(Color.Yellow);
+            _colors.Add(Color.Blue);
+            _colors.Add(Color.Pink);
         }
         public Microsoft.Xna.Framework.Color XNAColor(System.Drawing.Color color)
         {
@@ -33,13 +42,16 @@ namespace Brick_Breaker_Summative
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
+            /*
             _colors = new List<Microsoft.Xna.Framework.Color>();
             foreach (KnownColor known in Enum.GetValues(typeof(KnownColor)))
             {
                 _colors.Add(XNAColor(System.Drawing.Color.FromKnownColor(known)));
-            }
+            }*/
             base.Initialize();
+            _pad = new Paddle(padTex,new Rectangle(width/2, height*7/8, width/12, height/36));
             bricks = new List<Brick>();
+
             GenerateBricks(15);
         }
         protected void GenerateBricks(int rows)
@@ -57,6 +69,8 @@ namespace Brick_Breaker_Summative
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             rectTex = Content.Load<Texture2D>("rectangle");
+            ballTex = Content.Load<Texture2D>("circle");
+            padTex = Content.Load<Texture2D>("paddle");
             // TODO: use this.Content to load your game content here
         }
 
@@ -66,13 +80,14 @@ namespace Brick_Breaker_Summative
                 Exit();
 
             // TODO: Add your update logic here
-
+            _pad.Update(gameTime, Keyboard.GetState());
+            this.Window.Title = _pad.Rectangle.X.ToString();
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
@@ -80,6 +95,8 @@ namespace Brick_Breaker_Summative
             {
                 item.Draw(_spriteBatch);
             }
+            _pad.Draw(_spriteBatch);
+            //_spriteBatch.Draw(padTex, new Rectangle(0,0,100,100),Color.White);
             _spriteBatch.End();
             base.Draw(gameTime);
         }
