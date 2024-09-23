@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace Brick_Breaker_Summative
 {
@@ -21,7 +21,7 @@ namespace Brick_Breaker_Summative
             _height = rect.Y * 4 / 3;
             _position = new Vector2(rect.X, rect.Y);
             _velocity = velocity;
-            _speed = 0.1f;
+            _speed = 0.5f;
         }
         public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks)
         {
@@ -54,32 +54,74 @@ namespace Brick_Breaker_Summative
             }
             if (_rect.Intersects(padRect))
             {
-                if (_velocity.Y > 0)
-                {
-                    _position.Y = padRect.Top - _rect.Height;
-                }
-                else if (_velocity.Y < 0)
-                {
-                    _position.Y = padRect.Bottom;
-                }
-                _velocity.Y *= -1;
+                Collision(padRect);
             }
             for (int i = 0; i < bricks.Count; i++)
             {
                 if (_rect.Intersects(bricks[i].Rectangle))
                 {
+                    Collision(bricks[i].Rectangle); 
                     bricks.RemoveAt(i);
                     i--;
-                    if (_velocity.Y > 0)
-                    {
-                        _position.Y = bricks[i].Rectangle.Top - _rect.Height;
-                    }
-                    else if (_velocity.Y < 0)
-                    {
-                        _position.Y = bricks[i].Rectangle.Bottom;
-                    }
-                    _velocity.Y *= -1;
+                    break;
                 }
+            }
+        }
+        private void Collision(Rectangle rect)
+        {
+            int myhalfw = _rect.Width / 2;
+            int myhalfh = _rect.Height / 2;
+            int halfw = rect.Width / 2;
+            int halfh = rect.Height / 2;
+
+            int xmindis = myhalfw + halfw;
+            int ymindis = myhalfh + halfh;
+            int xdiff = _rect.Center.X - rect.Center.X;
+            int ydiff = _rect.Center.Y - rect.Center.Y;
+
+            int xdepth;
+            if (xdiff > 0)
+            {
+                xdepth = xmindis - xdiff;
+            }
+            else
+            {
+                xdepth = -xmindis - xdiff;
+            }
+
+            int ydepth;
+            if (ydiff > 0)
+            {
+                ydepth = ymindis - ydiff;
+            }
+            else
+            {
+                ydepth = -ymindis - ydiff;
+            }
+
+            if (Math.Abs(xdepth) < Math.Abs(ydepth))
+            {
+                if (xdepth < 0)
+                {
+                    _position.X = rect.Left - _rect.Width;
+                }
+                else 
+                {
+                    _position.X = rect.Right;
+                }
+                _velocity.X *= -1;
+            }
+            else
+            {
+                if (ydepth < 0)
+                {
+                    _position.Y = rect.Top - _rect.Height;
+                }
+                else if (ydepth > 0)
+                {
+                    _position.Y = rect.Bottom;
+                }
+                _velocity.Y *= -1;
             }
         }
         public void Draw(SpriteBatch sb)
