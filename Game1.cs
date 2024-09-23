@@ -13,10 +13,11 @@ namespace Brick_Breaker_Summative
         //List<Microsoft.Xna.Framework.Color> _colors;
         List<Color> _colors;
         Texture2D rectTex,ballTex,padTex;
-        List<Brick> bricks;
+        List<Brick> _bricks;
         Random gen = new Random();
         int width, height;
         Paddle _pad;
+        Ball _ball;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -49,9 +50,10 @@ namespace Brick_Breaker_Summative
                 _colors.Add(XNAColor(System.Drawing.Color.FromKnownColor(known)));
             }*/
             base.Initialize();
-            _pad = new Paddle(padTex,new Rectangle(width/2, height*7/8, width/12, height/36));
-            bricks = new List<Brick>();
-
+            _pad = new Paddle(padTex,new Rectangle(width/2-width/24, height*7/8, width/12, height/36));
+            _bricks = new List<Brick>();
+            _ball = new Ball(rectTex, new Rectangle(width/2- width / 72, height*3/4,width/36,width/36),
+                new Vector2(gen.Next(1,5),-gen.Next(1,5)));
             GenerateBricks(15);
         }
         protected void GenerateBricks(int rows)
@@ -60,7 +62,7 @@ namespace Brick_Breaker_Summative
             {
                 for (int j = 0; j < 18; j++)
                 {
-                    bricks.Add(new(rectTex, new Microsoft.Xna.Framework.Rectangle(j*width/18, i*height/36, width / 18, height / 36), _colors[gen.Next(_colors.Count)]));
+                    _bricks.Add(new(rectTex, new Rectangle(j*width/18, i*height/36, width / 18, height / 36), _colors[gen.Next(_colors.Count)]));
                 }
             }
         }
@@ -81,7 +83,8 @@ namespace Brick_Breaker_Summative
 
             // TODO: Add your update logic here
             _pad.Update(gameTime, Keyboard.GetState());
-            this.Window.Title = _pad.Rectangle.X.ToString();
+            _ball.Update(gameTime,_pad.Rectangle,_bricks);
+            //this.Window.Title = _pad.Rectangle.X.ToString();
             base.Update(gameTime);
         }
 
@@ -91,11 +94,12 @@ namespace Brick_Breaker_Summative
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
-            foreach (var item in bricks)
+            foreach (var item in _bricks)
             {
                 item.Draw(_spriteBatch);
             }
             _pad.Draw(_spriteBatch);
+            _ball.Draw(_spriteBatch);
             //_spriteBatch.Draw(padTex, new Rectangle(0,0,100,100),Color.White);
             _spriteBatch.End();
             base.Draw(gameTime);

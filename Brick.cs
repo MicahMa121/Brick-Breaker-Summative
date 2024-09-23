@@ -25,8 +25,8 @@ namespace Brick_Breaker_Summative
         public void Draw(SpriteBatch sb)
         {
             sb.Draw(_texture, _rect,Color.DarkGray);
-
             sb.Draw(_texture, _colored, _color);
+
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Brick_Breaker_Summative
         {
             _tex = tex;
             _rect = rect;
+
             _pos = new Vector2(rect.X, rect.Y);
         }
         public void Update(GameTime gameTime,KeyboardState keyboardState)
@@ -48,7 +49,14 @@ namespace Brick_Breaker_Summative
             { 
                 _pos.Y = _rect.Height * 24;
             }
-            if (_pos.X)
+            if (_pos.X > _rect.Width * 11)
+            {
+                _pos.X = _rect.Width * 11;
+            }
+            if (_pos.Y > _rect.Height * 35)
+            {
+                _pos.Y = _rect.Height * 35;
+            }
             _rect.X = (int)_pos.X;
             _rect.Y = (int)_pos.Y;
         }
