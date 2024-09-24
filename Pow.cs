@@ -17,7 +17,7 @@ namespace Brick_Breaker_Summative
             _rect = rect;
             _pos = new Vector2(rect.X,rect.Y);
             _vel = vel;
-            _speed = 0.5f;
+            _speed = 0.3f;
         }
         public void Update(GameTime gameTime)
         {

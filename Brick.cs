@@ -14,6 +14,7 @@ namespace Brick_Breaker_Summative
         private float _opacity;
         public int Health;
         private int _maxhealth;
+        private Vector2 _vel;
         public Brick(Texture2D texture, Rectangle rect, Color color, int maxhealth)
         {
             _texture = texture;
@@ -23,6 +24,14 @@ namespace Brick_Breaker_Summative
             _opacity = 1.0f;
             _maxhealth = maxhealth;
             Health = maxhealth;
+            _vel = new Vector2(0,-10);
+        }
+        public void Update()
+        {
+            Health = _maxhealth;
+            _vel.Y += 1;
+            _rect.Offset(_vel);
+            _colored.Offset(_vel);
         }
         public void Draw(SpriteBatch sb)
         {

@@ -9,7 +9,7 @@ namespace Brick_Breaker_Summative
         private Texture2D _tex;
         private Rectangle _rect;
         private Vector2 _pos;
-        private float _speed = 0.25f;
+        private float _speed = 0.5f;
         private Vector2 _velocity = Vector2.Zero;
         public Rectangle Rectangle { get { return _rect; } }
         public Paddle(Texture2D tex, Rectangle rect)

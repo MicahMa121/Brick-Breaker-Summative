@@ -16,6 +16,8 @@ namespace Brick_Breaker_Summative
         public float Speed { get { return _speed; } set { _speed = value; } }
         public Point CollisionPoint;
         public bool IsHit;
+        public bool PlayerHit;
+        private List<Brick> brickFall = new List<Brick>();
         public Ball(Texture2D tex, Rectangle rect, Vector2 velocity)
         {
             _tex = tex;
@@ -23,7 +25,7 @@ namespace Brick_Breaker_Summative
             _height = rect.Y * 4 / 3;
             _position = new Vector2(rect.X, rect.Y);
             _velocity = velocity;
-            _speed = 0.5f;
+            _speed = 0.75f;
         }
         public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks)
         {
@@ -54,10 +56,12 @@ namespace Brick_Breaker_Summative
             {
                 _position.Y = _height - _rect.Height;
                 _velocity.Y *= -1;
+                PlayerHit = true;
             }
             if (_rect.Intersects(padRect))
             {
                 Collision(padRect);
+                
             }
             for (int i = 0; i < bricks.Count; i++)
             {
@@ -69,10 +73,20 @@ namespace Brick_Breaker_Summative
                     {
                         IsHit = true;
                         CollisionPoint = bricks[i].Rectangle.Center;
+                        brickFall.Add(bricks[i]);
                         bricks.RemoveAt(i);
                         i--;
                     }
                     break;
+                }
+            }
+            for (int i = 0; i < brickFall.Count; i++)
+            {
+                brickFall[i].Update();
+                if (brickFall[i].Rectangle.Y > _height)
+                {
+                    brickFall.RemoveAt(i);
+                    i--;
                 }
             }
         }
@@ -136,6 +150,10 @@ namespace Brick_Breaker_Summative
         public void Draw(SpriteBatch sb)
         {
             sb.Draw(_tex, _rect,Color.Black);
+            foreach (var item in brickFall)
+            {
+                item.Draw(sb);
+            }
         }
     }
 }

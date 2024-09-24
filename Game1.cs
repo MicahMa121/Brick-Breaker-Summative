@@ -12,7 +12,7 @@ namespace Brick_Breaker_Summative
         private SpriteBatch _spriteBatch;
         //List<Microsoft.Xna.Framework.Color> _colors;
         List<Color> _colors;
-        Texture2D rectTex,ballTex,padTex,powTex;
+        Texture2D rectTex,ballTex,padTex,powTex,glassTex,brokenGlassTex;
         List<Brick> _bricks;
         List<Pow> _pows;
         Random gen = new Random();
@@ -100,6 +100,8 @@ namespace Brick_Breaker_Summative
             padTex = Content.Load<Texture2D>("paddle");
             _font = Content.Load<SpriteFont>("spritefont");
             powTex = Content.Load<Texture2D>("pow");
+            glassTex = Content.Load<Texture2D>("bottom_glass_full");
+            brokenGlassTex = Content.Load<Texture2D>("bottom_glass_cracked");
             // TODO: use this.Content to load your game content here
         }
 
@@ -114,10 +116,15 @@ namespace Brick_Breaker_Summative
             if (_ball.IsHit)
             {
                 score += 100;
-                if (score > 1000)//&&0== gen.Next(24))
+                if (score > 1000&&0== gen.Next(24))
                 {
                     GeneratePow(_ball.CollisionPoint);
                 }
+            }
+            if (_ball.PlayerHit)
+            {
+                durability -= 0.1f;
+                _ball.PlayerHit = false;
             }
             for (int i = 0; i < _pows.Count; i++)
             {
@@ -133,6 +140,20 @@ namespace Brick_Breaker_Summative
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
+            if (durability > 0.5f)
+            {
+                for (int i = 0; i < width / (height / 12); i++)
+                {
+                    _spriteBatch.Draw(glassTex, new Rectangle(0 + i * height / 12, height * 11 / 12, height / 12, height / 12), Color.White);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < width / (height / 12); i++)
+                {
+                    _spriteBatch.Draw(brokenGlassTex, new Rectangle(0 + i * height / 12, height * 11 / 12, height / 12, height / 12), Color.White);
+                }
+            }
             foreach (var item in _bricks)
             {
                 item.Draw(_spriteBatch);
