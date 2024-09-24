@@ -14,6 +14,8 @@ namespace Brick_Breaker_Summative
         private float _speed;
         private int _height;
         public float Speed { get { return _speed; } set { _speed = value; } }
+        public Point CollisionPoint;
+        public bool IsHit;
         public Ball(Texture2D tex, Rectangle rect, Vector2 velocity)
         {
             _tex = tex;
@@ -25,6 +27,7 @@ namespace Brick_Breaker_Summative
         }
         public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks)
         {
+            IsHit = false;
             if (_velocity != Vector2.Zero)
             {
                 _velocity.Normalize();
@@ -60,9 +63,15 @@ namespace Brick_Breaker_Summative
             {
                 if (_rect.Intersects(bricks[i].Rectangle))
                 {
-                    Collision(bricks[i].Rectangle); 
-                    bricks.RemoveAt(i);
-                    i--;
+                    Collision(bricks[i].Rectangle);
+                    bricks[i].Health -= 1;
+                    if (bricks[i].Health <= 0)
+                    {
+                        IsHit = true;
+                        CollisionPoint = bricks[i].Rectangle.Center;
+                        bricks.RemoveAt(i);
+                        i--;
+                    }
                     break;
                 }
             }
