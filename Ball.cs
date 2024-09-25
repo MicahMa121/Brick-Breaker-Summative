@@ -18,14 +18,17 @@ namespace Brick_Breaker_Summative
         public bool IsHit;
         public bool PlayerHit;
         private List<Brick> brickFall = new List<Brick>();
-        public Ball(Texture2D tex, Rectangle rect, Vector2 velocity)
+        private Color _color;
+        public Color Color { get { return _color; } }
+        public Ball(Texture2D tex, Rectangle rect, Vector2 velocity,Color color)
         {
             _tex = tex;
             _rect = rect;
             _height = rect.Y * 4 / 3;
             _position = new Vector2(rect.X, rect.Y);
             _velocity = velocity;
-            _speed = 0.75f;
+            _speed = 400f;
+            _color = color;
         }
         public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks)
         {
@@ -34,7 +37,7 @@ namespace Brick_Breaker_Summative
             {
                 _velocity.Normalize();
             }
-            _position += _velocity * _speed * gameTime.ElapsedGameTime.Milliseconds;
+            _position += _velocity * _speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
             _rect.X = (int)_position.X;
             _rect.Y = (int)_position.Y;
             if (_position.X < 0)
@@ -149,7 +152,7 @@ namespace Brick_Breaker_Summative
         }
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(_tex, _rect,Color.Black);
+            sb.Draw(_tex, _rect,_color);
             foreach (var item in brickFall)
             {
                 item.Draw(sb);

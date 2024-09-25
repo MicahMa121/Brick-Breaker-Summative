@@ -12,9 +12,10 @@ namespace Brick_Breaker_Summative
         private SpriteBatch _spriteBatch;
         //List<Microsoft.Xna.Framework.Color> _colors;
         List<Color> _colors;
-        Texture2D rectTex,ballTex,padTex,powTex,glassTex,brokenGlassTex;
+        Texture2D rectTex,ballTex,padTex,powTex,glassTex,brokenGlassTex,coinTex,starTex;
         List<Brick> _bricks;
         List<Pow> _pows;
+        List<Ball> _balls;
         Random gen = new Random();
         int width, height;
         Paddle _pad;
@@ -22,6 +23,8 @@ namespace Brick_Breaker_Summative
         SpriteFont _font;
         int score;
         float durability;
+        int grownValue;
+        double grownTimer,hurtCD;
         enum screen 
         { 
             intro, 
@@ -64,11 +67,14 @@ namespace Brick_Breaker_Summative
             base.Initialize();
             score = 0;
             durability = 1;
+            grownValue = 0;
+            grownTimer = 0;
             _pad = new Paddle(padTex,new Rectangle(width/2-width/24, height*7/8, width/12, height/36));
             _bricks = new List<Brick>();
             _pows = new List<Pow>();
             _ball = new Ball(ballTex, new Rectangle(width/2- width / 72, height*3/4,width/36,width/36),
-                new Vector2(gen.Next(1,5),-gen.Next(1,5)));
+                new Vector2(gen.Next(1,5),-gen.Next(3, 5)),Color.Black);
+            _balls = new List<Ball>();
             GenerateBricks(15);
         }
         protected void GenerateBricks(int rows)
@@ -87,9 +93,9 @@ namespace Brick_Breaker_Summative
             }
             //this.Window.Title = health.ToString();
         }
-        protected void GeneratePow(Point pos)
+        protected void GeneratePow(Texture2D tex,Point pos)
         {
-            Pow pow = new Pow(powTex,new Rectangle(pos.X - width / 72, pos.Y - width / 72, width/36,width/36),new Vector2(0,1));
+            Pow pow = new Pow(tex,new Rectangle(pos.X - width / 72, pos.Y - width / 72, width/36,width/36),new Vector2(0,1));
             _pows.Add(pow);
         }
         protected override void LoadContent()
@@ -102,6 +108,8 @@ namespace Brick_Breaker_Summative
             powTex = Content.Load<Texture2D>("pow");
             glassTex = Content.Load<Texture2D>("bottom_glass_full");
             brokenGlassTex = Content.Load<Texture2D>("bottom_glass_cracked");
+            coinTex = Content.Load<Texture2D>("coin");
+            starTex = Content.Load<Texture2D>("star");
             // TODO: use this.Content to load your game content here
         }
 
@@ -111,26 +119,109 @@ namespace Brick_Breaker_Summative
                 Exit();
 
             // TODO: Add your update logic here
+            grownTimer += gameTime.ElapsedGameTime.TotalSeconds;
+            if (hurtCD < 1)
+            {
+                hurtCD += gameTime.ElapsedGameTime.TotalSeconds;
+            }
+
+            //this.Window.Title = grownTimer.ToString();
+            if (grownTimer > 5)
+            {
+                grownTimer = 0;
+                _pad.Growth = -grownValue;
+                grownValue = 0;
+            }
             _pad.Update(gameTime, Keyboard.GetState());
             _ball.Update(gameTime,_pad.Rectangle,_bricks);
             if (_ball.IsHit)
             {
                 score += 100;
-                if (score > 1000&&0== gen.Next(24))
+                if (score > 1000&&0== gen.Next(10))
                 {
-                    GeneratePow(_ball.CollisionPoint);
+                    GeneratePow(powTex,_ball.CollisionPoint);
+                }
+                else if (score > 1000 && 0 == gen.Next(10))
+                {
+                    GeneratePow(starTex, _ball.CollisionPoint);
+                }
+                else if (score > 1000 && 0 == gen.Next(10))
+                {
+                    GeneratePow(coinTex, _ball.CollisionPoint);
                 }
             }
             if (_ball.PlayerHit)
             {
-                durability -= 0.1f;
+                if (hurtCD > 1)
+                {
+                    durability -= 0.1f;
+                    hurtCD = 0;
+                }
                 _ball.PlayerHit = false;
+            }
+
+            for (int i = 0; i < _balls.Count; i++)
+            {
+                var ball = _balls[i];   
+                ball.Update(gameTime, _pad.Rectangle, _bricks);
+                if (ball.IsHit)
+                {
+                    score += 100;
+                    if (score > 1000 && 0 == gen.Next(10))
+                    {
+                        GeneratePow(powTex, _ball.CollisionPoint);
+                    }
+                    else if (score > 1000 && 0 == gen.Next(10))
+                    {
+                        GeneratePow(starTex, _ball.CollisionPoint);
+                    }
+                    else if (score > 1000 && 0 == gen.Next(5))
+                    {
+                        GeneratePow(coinTex, _ball.CollisionPoint);
+                    }
+                }
+                if (ball.PlayerHit)
+                {
+                    _balls.RemoveAt(i);
+                }
             }
             for (int i = 0; i < _pows.Count; i++)
             {
-                _pows[i].Update(gameTime);
+                var pow = _pows[i];
+                if (pow.Rectangle.Intersects(_pad.Rectangle))
+                {
+                    if (pow.Texture == powTex)
+                    {
+                        if (grownValue < 15)
+                        {
+                            grownValue += 5;
+                            _pad.Growth += 5;
+                            grownTimer = 0;
+                        }
+                    }
+                    else if (pow.Texture == starTex)
+                    {
+                        Ball ball = new Ball(ballTex, new Rectangle(width / 2 - width / 72, height * 3 / 4, width / 36, width / 36),
+                               new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Gold);
+                        _balls.Add(ball);
+                    }
+                    else if (pow.Texture == coinTex)
+                    {
+                        if (durability < 1)
+                        {
+                            durability += 0.05f;
+                        }
+                        if (durability < 0.5f)
+                        {
+                            durability += 0.05f;
+                        }
+                    }
+                    _pows.RemoveAt(i);
+                    i--;
+                }
+                pow.Update(gameTime);
             }
-                //this.Window.Title = _pad.Rectangle.X.ToString();
+
                 base.Update(gameTime);
         }
 
@@ -164,6 +255,10 @@ namespace Brick_Breaker_Summative
                 item.Draw(_spriteBatch);
             }
             _ball.Draw(_spriteBatch);
+            foreach (var item in _balls)
+            {
+                item.Draw(_spriteBatch);
+            }
             _spriteBatch.DrawString(_font, "Score: " + score,new Vector2(width/24,height*11/12),Color.White);
             _spriteBatch.DrawString(_font, "Durability: " + durability.ToString("0%"), new Vector2(width* 18 / 24, height * 11 / 12), Color.White);
             //_spriteBatch.Draw(padTex, new Rectangle(0,0,100,100),Color.White);
