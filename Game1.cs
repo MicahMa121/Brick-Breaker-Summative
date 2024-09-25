@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Brick_Breaker_Summative
 {
@@ -25,13 +26,15 @@ namespace Brick_Breaker_Summative
         float durability;
         int grownValue;
         double grownTimer,hurtCD;
-        enum screen 
+        
+        enum Screen 
         { 
             intro, 
             game, 
-            end
+            won,
+            lost
         }
-
+        Screen screen;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -50,6 +53,7 @@ namespace Brick_Breaker_Summative
             _colors.Add(Color.Blue);
             _colors.Add(Color.Indigo);
             _colors.Add(Color.Violet);
+            screen = Screen.intro;
         }
         public Microsoft.Xna.Framework.Color XNAColor(System.Drawing.Color color)
         {
@@ -72,21 +76,21 @@ namespace Brick_Breaker_Summative
             _pad = new Paddle(padTex,new Rectangle(width/2-width/24, height*7/8, width/12, height/36));
             _bricks = new List<Brick>();
             _pows = new List<Pow>();
-            _ball = new Ball(ballTex, new Rectangle(width/2- width / 72, height*3/4,width/36,width/36),
+            _ball = new Ball(ballTex, new Rectangle(width/2- width /144, height*3/4,width/72,width/72),
                 new Vector2(gen.Next(1,5),-gen.Next(3, 5)),Color.Black);
             _balls = new List<Ball>();
             GenerateBricks(15);
         }
         protected void GenerateBricks(int rows)
         {
-            int health = rows/_colors.Count+2;
-            for (int i = 0; i < rows; i++)
+            int health = rows/_colors.Count+1;
+            for (int i = 1; i < rows; i++)
             {
                 if (health > 1 && i%_colors.Count == 0)
                 {
                     health--;
                 }
-                for (int j = 0; j < 18; j++)
+                for (int j = 1; j < 17; j++)
                 {
                     _bricks.Add(new Brick(rectTex, new Rectangle(j*width/18, i*height/36, width / 18, height / 36), _colors[i%_colors.Count],health));
                 }
@@ -119,110 +123,119 @@ namespace Brick_Breaker_Summative
                 Exit();
 
             // TODO: Add your update logic here
-            grownTimer += gameTime.ElapsedGameTime.TotalSeconds;
-            if (hurtCD < 1)
+            switch (screen) 
             {
-                hurtCD += gameTime.ElapsedGameTime.TotalSeconds;
-            }
+                case Screen.intro:
+                    return;
+                case Screen.game:
+                    grownTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                    if (hurtCD < 1)
+                    {
+                        hurtCD += gameTime.ElapsedGameTime.TotalSeconds;
+                    }
 
-            //this.Window.Title = grownTimer.ToString();
-            if (grownTimer > 5)
-            {
-                grownTimer = 0;
-                _pad.Growth = -grownValue;
-                grownValue = 0;
-            }
-            _pad.Update(gameTime, Keyboard.GetState());
-            _ball.Update(gameTime,_pad.Rectangle,_bricks);
-            if (_ball.IsHit)
-            {
-                score += 100;
-                if (score > 1000&&0== gen.Next(10))
-                {
-                    GeneratePow(powTex,_ball.CollisionPoint);
-                }
-                else if (score > 1000 && 0 == gen.Next(10))
-                {
-                    GeneratePow(starTex, _ball.CollisionPoint);
-                }
-                else if (score > 1000 && 0 == gen.Next(10))
-                {
-                    GeneratePow(coinTex, _ball.CollisionPoint);
-                }
-            }
-            if (_ball.PlayerHit)
-            {
-                if (hurtCD > 1)
-                {
-                    durability -= 0.1f;
-                    hurtCD = 0;
-                }
-                _ball.PlayerHit = false;
-            }
-
-            for (int i = 0; i < _balls.Count; i++)
-            {
-                var ball = _balls[i];   
-                ball.Update(gameTime, _pad.Rectangle, _bricks);
-                if (ball.IsHit)
-                {
-                    score += 100;
-                    if (score > 1000 && 0 == gen.Next(10))
+                    //this.Window.Title = grownTimer.ToString();
+                    if (grownTimer > 5)
                     {
-                        GeneratePow(powTex, _ball.CollisionPoint);
+                        grownTimer = 0;
+                        _pad.Growth = -grownValue;
+                        grownValue = 0;
                     }
-                    else if (score > 1000 && 0 == gen.Next(10))
+                    _pad.Update(gameTime, Keyboard.GetState());
+                    _ball.Update(gameTime, _pad.Rectangle, _bricks, _pad.Velocity);
+                    if (_ball.IsHit)
                     {
-                        GeneratePow(starTex, _ball.CollisionPoint);
-                    }
-                    else if (score > 1000 && 0 == gen.Next(5))
-                    {
-                        GeneratePow(coinTex, _ball.CollisionPoint);
-                    }
-                }
-                if (ball.PlayerHit)
-                {
-                    _balls.RemoveAt(i);
-                }
-            }
-            for (int i = 0; i < _pows.Count; i++)
-            {
-                var pow = _pows[i];
-                if (pow.Rectangle.Intersects(_pad.Rectangle))
-                {
-                    if (pow.Texture == powTex)
-                    {
-                        if (grownValue < 15)
+                        score += 100;
+                        if (score > 1000 && 0 == gen.Next(10))
                         {
-                            grownValue += 5;
-                            _pad.Growth += 5;
-                            grownTimer = 0;
+                            GeneratePow(powTex, _ball.CollisionPoint);
+                        }
+                        else if (score > 1000 && 0 == gen.Next(10))
+                        {
+                            GeneratePow(starTex, _ball.CollisionPoint);
+                        }
+                        else if (score > 1000 && 0 == gen.Next(5))
+                        {
+                            GeneratePow(coinTex, _ball.CollisionPoint);
                         }
                     }
-                    else if (pow.Texture == starTex)
+                    if (_ball.PlayerHit)
                     {
-                        Ball ball = new Ball(ballTex, new Rectangle(width / 2 - width / 72, height * 3 / 4, width / 36, width / 36),
-                               new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Gold);
-                        _balls.Add(ball);
-                    }
-                    else if (pow.Texture == coinTex)
-                    {
-                        if (durability < 1)
+                        if (hurtCD > 1)
                         {
-                            durability += 0.05f;
+                            durability -= 0.1f;
+                            hurtCD = 0;
                         }
-                        if (durability < 0.5f)
-                        {
-                            durability += 0.05f;
-                        }
+                        _ball.PlayerHit = false;
                     }
-                    _pows.RemoveAt(i);
-                    i--;
-                }
-                pow.Update(gameTime);
-            }
 
-                base.Update(gameTime);
+                    for (int i = 0; i < _balls.Count; i++)
+                    {
+                        var ball = _balls[i];
+                        ball.Update(gameTime, _pad.Rectangle, _bricks, _pad.Velocity);
+                        if (ball.IsHit)
+                        {
+                            score += 100;
+                            if (score > 1000 && 0 == gen.Next(10))
+                            {
+                                GeneratePow(powTex, _ball.CollisionPoint);
+                            }
+                            else if (score > 1000 && 0 == gen.Next(10))
+                            {
+                                GeneratePow(starTex, _ball.CollisionPoint);
+                            }
+                            else if (score > 1000 && 0 == gen.Next(5))
+                            {
+                                GeneratePow(coinTex, _ball.CollisionPoint);
+                            }
+                        }
+                        if (ball.PlayerHit)
+                        {
+                            _balls.RemoveAt(i);
+                        }
+                    }
+                    for (int i = 0; i < _pows.Count; i++)
+                    {
+                        var pow = _pows[i];
+                        if (pow.Rectangle.Intersects(_pad.Rectangle))
+                        {
+                            if (pow.Texture == powTex)
+                            {
+                                if (grownValue < 15)
+                                {
+                                    grownValue += 5;
+                                    _pad.Growth += 5;
+                                    grownTimer = 0;
+                                }
+                            }
+                            else if (pow.Texture == starTex)
+                            {
+                                Ball ball = new Ball(ballTex, new Rectangle(width / 2 - width / 144, height * 3 / 4, width / 72, width / 72),
+                                       new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Gold);
+                                _balls.Add(ball);
+                            }
+                            else if (pow.Texture == coinTex)
+                            {
+                                if (durability < 1)
+                                {
+                                    durability += 0.05f;
+                                }
+                                if (durability < 0.5f)
+                                {
+                                    durability += 0.05f;
+                                }
+                            }
+                            _pows.RemoveAt(i);
+                            i--;
+                        }
+                        pow.Update(gameTime);
+                    }
+                    return;
+                case Screen.won:
+                    return;
+                case Screen.lost: return;
+            }
+            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -231,36 +244,46 @@ namespace Brick_Breaker_Summative
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
-            if (durability > 0.5f)
+            switch (screen)
             {
-                for (int i = 0; i < width / (height / 12); i++)
-                {
-                    _spriteBatch.Draw(glassTex, new Rectangle(0 + i * height / 12, height * 11 / 12, height / 12, height / 12), Color.White);
-                }
+                case Screen.intro:
+                    return;
+                case Screen.game:
+                    if (durability > 0.5f)
+                    {
+                        for (int i = 0; i < width / (height / 12); i++)
+                        {
+                            _spriteBatch.Draw(glassTex, new Rectangle(0 + i * height / 12, height * 11 / 12, height / 12, height / 12), Color.White);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < width / (height / 12); i++)
+                        {
+                            _spriteBatch.Draw(brokenGlassTex, new Rectangle(0 + i * height / 12, height * 11 / 12, height / 12, height / 12), Color.White);
+                        }
+                    }
+                    foreach (var item in _bricks)
+                    {
+                        item.Draw(_spriteBatch);
+                    }
+                    _pad.Draw(_spriteBatch);
+                    foreach (var item in _pows)
+                    {
+                        item.Draw(_spriteBatch);
+                    }
+                    _ball.Draw(_spriteBatch);
+                    foreach (var item in _balls)
+                    {
+                        item.Draw(_spriteBatch);
+                    }
+                    _spriteBatch.DrawString(_font, "Score: " + score, new Vector2(width / 24, height * 11 / 12), Color.White);
+                    _spriteBatch.DrawString(_font, "Durability: " + durability.ToString("0%"), new Vector2(width * 18 / 24, height * 11 / 12), Color.White);
+                    return;
+                case Screen.won: return;
+                case Screen.lost: return;
             }
-            else
-            {
-                for (int i = 0; i < width / (height / 12); i++)
-                {
-                    _spriteBatch.Draw(brokenGlassTex, new Rectangle(0 + i * height / 12, height * 11 / 12, height / 12, height / 12), Color.White);
-                }
-            }
-            foreach (var item in _bricks)
-            {
-                item.Draw(_spriteBatch);
-            }
-            _pad.Draw(_spriteBatch);
-            foreach(var item in _pows)
-            {
-                item.Draw(_spriteBatch);
-            }
-            _ball.Draw(_spriteBatch);
-            foreach (var item in _balls)
-            {
-                item.Draw(_spriteBatch);
-            }
-            _spriteBatch.DrawString(_font, "Score: " + score,new Vector2(width/24,height*11/12),Color.White);
-            _spriteBatch.DrawString(_font, "Durability: " + durability.ToString("0%"), new Vector2(width* 18 / 24, height * 11 / 12), Color.White);
+            
             //_spriteBatch.Draw(padTex, new Rectangle(0,0,100,100),Color.White);
             _spriteBatch.End();
             base.Draw(gameTime);

@@ -13,6 +13,7 @@ namespace Brick_Breaker_Summative
         private Vector2 _position;
         private float _speed;
         private int _height;
+        private int _width;
         public float Speed { get { return _speed; } set { _speed = value; } }
         public Point CollisionPoint;
         public bool IsHit;
@@ -25,12 +26,13 @@ namespace Brick_Breaker_Summative
             _tex = tex;
             _rect = rect;
             _height = rect.Y * 4 / 3;
+            _width = rect.Width * 72;
             _position = new Vector2(rect.X, rect.Y);
             _velocity = velocity;
             _speed = 400f;
             _color = color;
         }
-        public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks)
+        public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks,Vector2 ballVel)
         {
             IsHit = false;
             if (_velocity != Vector2.Zero)
@@ -50,9 +52,9 @@ namespace Brick_Breaker_Summative
                 _position.Y = 0;
                 _velocity.Y *= -1;
             }
-            if (_position.X > _rect.Width * 35)
+            if (_position.X > _width - _rect.Width)
             {
-                _position.X = _rect.Width * 35;
+                _position.X = _width - _rect.Width;
                 _velocity.X *= -1;
             }
             if (_position.Y > _height - _rect.Height )
@@ -64,7 +66,6 @@ namespace Brick_Breaker_Summative
             if (_rect.Intersects(padRect))
             {
                 Collision(padRect);
-                
             }
             for (int i = 0; i < bricks.Count; i++)
             {
