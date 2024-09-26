@@ -1,9 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace Brick_Breaker_Summative
 {
@@ -13,7 +13,8 @@ namespace Brick_Breaker_Summative
         private SpriteBatch _spriteBatch;
         //List<Microsoft.Xna.Framework.Color> _colors;
         List<Color> _colors;
-        Texture2D rectTex,ballTex,padTex,powTex,glassTex,brokenGlassTex,coinTex,starTex;
+        Texture2D rectTex,ballTex,padTex,powTex,glassTex,brokenGlassTex,coinTex,starTex,introTex;
+        Texture2D berryTex,wonTex;
         List<Brick> _bricks;
         List<Pow> _pows;
         List<Ball> _balls;
@@ -25,7 +26,9 @@ namespace Brick_Breaker_Summative
         int score;
         float durability;
         int grownValue;
-        double grownTimer,hurtCD;
+        double grownTimer,hurtCD,infectedTimer;
+        SoundEffect brickSound;
+        SoundEffectInstance brickSoundInstance;
         
         enum Screen 
         { 
@@ -53,7 +56,7 @@ namespace Brick_Breaker_Summative
             _colors.Add(Color.Blue);
             _colors.Add(Color.Indigo);
             _colors.Add(Color.Violet);
-            screen = Screen.intro;
+            screen = Screen.won;
         }
         public Microsoft.Xna.Framework.Color XNAColor(System.Drawing.Color color)
         {
@@ -73,6 +76,7 @@ namespace Brick_Breaker_Summative
             durability = 1;
             grownValue = 0;
             grownTimer = 0;
+            infectedTimer = 0;
             _pad = new Paddle(padTex,new Rectangle(width/2-width/24, height*7/8, width/12, height/36));
             _bricks = new List<Brick>();
             _pows = new List<Pow>();
@@ -105,6 +109,7 @@ namespace Brick_Breaker_Summative
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+            introTex = Content.Load<Texture2D>("breakout_logo");
             rectTex = Content.Load<Texture2D>("rectangle");
             ballTex = Content.Load<Texture2D>("circle");
             padTex = Content.Load<Texture2D>("paddle");
@@ -114,6 +119,10 @@ namespace Brick_Breaker_Summative
             brokenGlassTex = Content.Load<Texture2D>("bottom_glass_cracked");
             coinTex = Content.Load<Texture2D>("coin");
             starTex = Content.Load<Texture2D>("star");
+            berryTex = Content.Load<Texture2D>("berry");
+            wonTex = Content.Load<Texture2D>("won");
+            brickSound = Content.Load<SoundEffect>("bricksound");
+            brickSoundInstance = brickSound.CreateInstance();
             // TODO: use this.Content to load your game content here
         }
 
@@ -126,16 +135,24 @@ namespace Brick_Breaker_Summative
             switch (screen) 
             {
                 case Screen.intro:
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                    {
+                        screen = Screen.game;
+                    }
                     return;
                 case Screen.game:
                     grownTimer += gameTime.ElapsedGameTime.TotalSeconds;
+                    infectedTimer += gameTime.ElapsedGameTime.TotalSeconds;
                     if (hurtCD < 1)
                     {
                         hurtCD += gameTime.ElapsedGameTime.TotalSeconds;
                     }
-
+                    if (infectedTimer > 10)
+                    {
+                        _pad.Infected = false;
+                    }
                     //this.Window.Title = grownTimer.ToString();
-                    if (grownTimer > 5)
+                    if (grownTimer > 10)
                     {
                         grownTimer = 0;
                         _pad.Growth = -grownValue;
@@ -145,6 +162,7 @@ namespace Brick_Breaker_Summative
                     _ball.Update(gameTime, _pad.Rectangle, _bricks, _pad.Velocity);
                     if (_ball.IsHit)
                     {
+                        brickSound.Play();
                         score += 100;
                         if (score > 1000 && 0 == gen.Next(10))
                         {
@@ -152,7 +170,7 @@ namespace Brick_Breaker_Summative
                         }
                         else if (score > 1000 && 0 == gen.Next(10))
                         {
-                            GeneratePow(starTex, _ball.CollisionPoint);
+                            GeneratePow(berryTex, _ball.CollisionPoint);
                         }
                         else if (score > 1000 && 0 == gen.Next(5))
                         {
@@ -225,15 +243,61 @@ namespace Brick_Breaker_Summative
                                     durability += 0.05f;
                                 }
                             }
+                            else if (pow.Texture == berryTex)
+                            {
+                                _pad.Infected = true;
+                                infectedTimer = 0;
+                            }
                             _pows.RemoveAt(i);
                             i--;
                         }
                         pow.Update(gameTime);
                     }
+                    if (_bricks.Count == 0)
+                    {
+                        screen = Screen.won;
+                    }
+                    if (durability <= 0)
+                    {
+                        screen = Screen.lost;
+                    }
                     return;
                 case Screen.won:
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                    {
+                        screen = Screen.game;
+                        score = 0;
+                        durability = 1;
+                        grownValue = 0;
+                        grownTimer = 0;
+                        infectedTimer = 0;
+                        _pad = new Paddle(padTex, new Rectangle(width / 2 - width / 24, height * 7 / 8, width / 12, height / 36));
+                        _bricks = new List<Brick>();
+                        _pows = new List<Pow>();
+                        _ball = new Ball(ballTex, new Rectangle(width / 2 - width / 144, height * 3 / 4, width / 72, width / 72),
+                            new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Black);
+                        _balls = new List<Ball>();
+                        GenerateBricks(15);
+                    }
                     return;
-                case Screen.lost: return;
+                case Screen.lost:
+                    if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                    {
+                        screen = Screen.game;
+                        score = 0;
+                        durability = 1;
+                        grownValue = 0;
+                        grownTimer = 0;
+                        infectedTimer = 0;
+                        _pad = new Paddle(padTex, new Rectangle(width / 2 - width / 24, height * 7 / 8, width / 12, height / 36));
+                        _bricks = new List<Brick>();
+                        _pows = new List<Pow>();
+                        _ball = new Ball(ballTex, new Rectangle(width / 2 - width / 144, height * 3 / 4, width / 72, width / 72),
+                            new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Black);
+                        _balls = new List<Ball>();
+                        GenerateBricks(15);
+                    }
+                    return;
             }
             base.Update(gameTime);
         }
@@ -241,14 +305,18 @@ namespace Brick_Breaker_Summative
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.DeepSkyBlue);
-
             // TODO: Add your drawing code here
-            _spriteBatch.Begin();
+
             switch (screen)
             {
                 case Screen.intro:
+                    _spriteBatch.Begin();
+                    _spriteBatch.Draw(introTex, new Rectangle(0, 0, width, height), Color.White);
+                    _spriteBatch.DrawString(_font, "Space to Start", new Vector2(width/2,height*3/4)-_font.MeasureString("Space to Start")/2,Color.White);
+                    _spriteBatch.End();
                     return;
                 case Screen.game:
+                    _spriteBatch.Begin();
                     if (durability > 0.5f)
                     {
                         for (int i = 0; i < width / (height / 12); i++)
@@ -279,13 +347,27 @@ namespace Brick_Breaker_Summative
                     }
                     _spriteBatch.DrawString(_font, "Score: " + score, new Vector2(width / 24, height * 11 / 12), Color.White);
                     _spriteBatch.DrawString(_font, "Durability: " + durability.ToString("0%"), new Vector2(width * 18 / 24, height * 11 / 12), Color.White);
+                    _spriteBatch.End();
                     return;
-                case Screen.won: return;
-                case Screen.lost: return;
+                case Screen.won:
+                    _spriteBatch.Begin();
+                    _spriteBatch.Draw(wonTex,new Rectangle(width/2-height/6,height/4 - height / 6, height/3,height/3),Color.White);
+                    _spriteBatch.DrawString(_font,"Perfect!\nYou cleared 100% of the bricks!", new Vector2(width / 2, height * 2 / 4) - _font.MeasureString("Perfect!\nYou cleared 100% of the bricks!") / 2, Color.White);
+                    _spriteBatch.DrawString(_font, "Space to Restart", new Vector2(width / 2, height * 3 / 4) - _font.MeasureString("Space to Restart") / 2, Color.White);
+                    _spriteBatch.End();
+                    return;
+                case Screen.lost:
+                    _spriteBatch.Begin();
+                    _spriteBatch.Draw(wonTex, new Rectangle(width / 2 - height / 6, height / 4 - height / 6, height / 3, height / 3), Color.DarkGray);
+                    string s = "You cleared " + (1 - (float)_bricks.Count / (14f * 16f)).ToString("0%") + " of the bricks!\nTry again next time!";
+                    _spriteBatch.DrawString(_font,s, new Vector2(width / 2, height * 2 / 4) - _font.MeasureString(s) / 2, Color.White);
+                    _spriteBatch.DrawString(_font, "Space to Restart", new Vector2(width / 2, height * 3 / 4) - _font.MeasureString("Space to Restart") / 2, Color.White);
+                    _spriteBatch.End();
+                    return;
             }
             
             //_spriteBatch.Draw(padTex, new Rectangle(0,0,100,100),Color.White);
-            _spriteBatch.End();
+
             base.Draw(gameTime);
         }
     }

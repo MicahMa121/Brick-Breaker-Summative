@@ -14,6 +14,7 @@ namespace Brick_Breaker_Summative
         public Rectangle Rectangle { get { return _rect; } }
         public Vector2 Velocity { get { return _velocity; } }
         private int width,height;
+        public bool Infected = false;
         public Paddle(Texture2D tex, Rectangle rect)
         {
             _tex = tex;
@@ -48,8 +49,15 @@ namespace Brick_Breaker_Summative
                 //_velocity.Normalize();
                 _velocity *= 0.75f;
             }
-
-            _pos += _velocity  * _speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (Infected)
+            {
+                _pos -= _velocity * _speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+            else
+            {
+                _pos += _velocity * _speed * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            }
+            
             if (_pos.X < 0)
             {
                 _pos.X = 0;
@@ -90,7 +98,11 @@ namespace Brick_Breaker_Summative
         }
         public void Draw(SpriteBatch sb)
         {
-            sb.Draw(_tex, _rect,Color.White);
+            sb.Draw(_tex, _rect, Color.White);
+            if (Infected)
+            {
+                sb.Draw(_tex, _rect, Color.Cyan);
+            }
         }
     }
 }
