@@ -27,9 +27,7 @@ namespace Brick_Breaker_Summative
         float durability;
         int grownValue;
         double grownTimer,hurtCD,infectedTimer;
-        SoundEffect brickSound;
-        SoundEffectInstance brickSoundInstance;
-        
+        SoundEffect brickSound, bubSound, coinSound;
         enum Screen 
         { 
             intro, 
@@ -56,7 +54,7 @@ namespace Brick_Breaker_Summative
             _colors.Add(Color.Blue);
             _colors.Add(Color.Indigo);
             _colors.Add(Color.Violet);
-            screen = Screen.won;
+            screen = Screen.intro;
         }
         public Microsoft.Xna.Framework.Color XNAColor(System.Drawing.Color color)
         {
@@ -81,7 +79,7 @@ namespace Brick_Breaker_Summative
             _bricks = new List<Brick>();
             _pows = new List<Pow>();
             _ball = new Ball(ballTex, new Rectangle(width/2- width /144, height*3/4,width/72,width/72),
-                new Vector2(gen.Next(1,5),-gen.Next(3, 5)),Color.Black);
+                new Vector2(gen.Next(1,5),-gen.Next(3, 5)),Color.Black,bubSound);
             _balls = new List<Ball>();
             GenerateBricks(15);
         }
@@ -121,8 +119,9 @@ namespace Brick_Breaker_Summative
             starTex = Content.Load<Texture2D>("star");
             berryTex = Content.Load<Texture2D>("berry");
             wonTex = Content.Load<Texture2D>("won");
-            brickSound = Content.Load<SoundEffect>("bricksound");
-            brickSoundInstance = brickSound.CreateInstance();
+            brickSound = Content.Load<SoundEffect>("brick");
+            bubSound = Content.Load<SoundEffect>("bubpop");
+            coinSound = Content.Load<SoundEffect>("coinSound");
             // TODO: use this.Content to load your game content here
         }
 
@@ -217,6 +216,7 @@ namespace Brick_Breaker_Summative
                         var pow = _pows[i];
                         if (pow.Rectangle.Intersects(_pad.Rectangle))
                         {
+                            coinSound.Play();
                             if (pow.Texture == powTex)
                             {
                                 if (grownValue < 15)
@@ -229,7 +229,7 @@ namespace Brick_Breaker_Summative
                             else if (pow.Texture == starTex)
                             {
                                 Ball ball = new Ball(ballTex, new Rectangle(width / 2 - width / 144, height * 3 / 4, width / 72, width / 72),
-                                       new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Gold);
+                                       new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Gold,bubSound);
                                 _balls.Add(ball);
                             }
                             else if (pow.Texture == coinTex)
@@ -257,7 +257,7 @@ namespace Brick_Breaker_Summative
                     {
                         screen = Screen.won;
                     }
-                    if (durability <= 0)
+                    if (durability <= 0f)
                     {
                         screen = Screen.lost;
                     }
@@ -275,7 +275,7 @@ namespace Brick_Breaker_Summative
                         _bricks = new List<Brick>();
                         _pows = new List<Pow>();
                         _ball = new Ball(ballTex, new Rectangle(width / 2 - width / 144, height * 3 / 4, width / 72, width / 72),
-                            new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Black);
+                            new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Black, bubSound);
                         _balls = new List<Ball>();
                         GenerateBricks(15);
                     }
@@ -293,7 +293,7 @@ namespace Brick_Breaker_Summative
                         _bricks = new List<Brick>();
                         _pows = new List<Pow>();
                         _ball = new Ball(ballTex, new Rectangle(width / 2 - width / 144, height * 3 / 4, width / 72, width / 72),
-                            new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Black);
+                            new Vector2(gen.Next(1, 5), -gen.Next(3, 5)), Color.Black, bubSound);
                         _balls = new List<Ball>();
                         GenerateBricks(15);
                     }
