@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -21,9 +20,8 @@ namespace Brick_Breaker_Summative
         public bool PlayerHit;
         private List<Brick> brickFall = new List<Brick>();
         private Color _color;
-        private SoundEffect bub;
         public Color Color { get { return _color; } }
-        public Ball(Texture2D tex, Rectangle rect, Vector2 velocity,Color color,SoundEffect sound)
+        public Ball(Texture2D tex, Rectangle rect, Vector2 velocity,Color color)
         {
             _tex = tex;
             _rect = rect;
@@ -33,7 +31,6 @@ namespace Brick_Breaker_Summative
             _velocity = velocity;
             _speed = 400f;
             _color = color;
-            bub = sound;   
         }
         public void Update(GameTime gameTime,Rectangle padRect,List<Brick> bricks,Vector2 ballVel)
         {
@@ -99,7 +96,6 @@ namespace Brick_Breaker_Summative
         }
         private void Collision(Rectangle rect)
         {
-            bub.Play();
             int myhalfw = _rect.Width / 2;
             int myhalfh = _rect.Height / 2;
             int halfw = rect.Width / 2;

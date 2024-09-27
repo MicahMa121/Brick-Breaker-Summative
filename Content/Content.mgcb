@@ -61,18 +61,6 @@
 /processorParam:TextureFormat=Color
 /build:breakout_logo.jpg
 
-#begin brick.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:brick.wav
-
-#begin bubpop.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:bubpop.wav
-
 #begin circle.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -96,18 +84,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:coin.png
-
-#begin coinSound.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:coinSound.wav
-
-#begin glassSound.wav
-/importer:WavImporter
-/processor:SoundEffectProcessor
-/processorParam:Quality=Best
-/build:glassSound.wav
 
 #begin paddle.png
 /importer:TextureImporter
